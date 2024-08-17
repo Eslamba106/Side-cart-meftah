@@ -29,7 +29,7 @@ const ITEMS = [
     },
 ]
 
-const cart_data = [
+let cart_data = [
 
 ]
 
@@ -40,6 +40,9 @@ const closeBtn = document.getElementById('close_btn');
 const backdrop = document.querySelector('.backdrop');
 const itemsEl = document.querySelector('.items');
 const cartItems = document.querySelector('.cart_items');
+const itemsNum  = document.getElementById('item_num');
+const subtotalPrice = document.getElementById('subtotal_price');
+
 
 
 opentBtn.addEventListener('click', openCart);
@@ -48,6 +51,9 @@ backdrop.addEventListener('click', closeCart);
 renderItems()
 
 renderCartItems()
+
+
+
 function openCart() {
     cart.classList.add('open');
 
@@ -69,40 +75,73 @@ function closeCart() {
 }
 
 
-function addItemToCart(idx , itemId){
+function addItemToCart(idx, itemId) {
     const foundItem = cart_data.find(
-        (item)=>item.id.toString() === itemId.toString()
+        (item) => item.id.toString() === itemId.toString()
     )
-    if(foundItem){
-
-    }else{
+    if (foundItem) {
+        increaseQyt(foundItem.id)
+    } else {
         cart_data.push(ITEMS[idx])
     }
-    cart_data.push(ITEMS[idx]);
+    // cart_data.push(ITEMS[idx]);
     updateCart();
     openCart()
 }
+
+function removeCartItem(itemId) {
+    cart_data = cart_data.filter((item) => item.id != itemId);
+    updateCart();
+}
+
 function renderItems() {
-    ITEMS.forEach((item , idx) => {
+    ITEMS.forEach((item, idx) => {
         const itemEl = document.createElement('div')
         itemEl.classList.add('item')
-        itemEl.onclick = () => addItemToCart(idx);
+        // itemEl.onclick = () => addItemToCart(idx, item.id);
         itemEl.innerHTML = `
                 <img src="${item.image}" alt="">
-                <button>Add To Cart</button> `
+                <button onclick="addItemToCart(${idx}, ${item.id})">Add To Cart</button> `
         itemsEl.appendChild(itemEl)
     });
 }
 
 // disply render cart item 
 
-function renderCartItems(){
+
+
+
+
+function increaseQyt(itemId) {
+    cart_data = cart_data.map(item => item.id.toString() === itemId.toString()
+     ? { ...item, qyt: item.qyt + 1 } : item);
+     updateCart();
+}
+function decreaseQyt(itemId) {
+    cart_data = cart_data.map(item => item.id.toString() === itemId.toString()
+     ? { ...item, qyt: item.qyt > 1 ? item.qyt - 1 : item.qyt} : item);
+     updateCart();
+}
+
+function calcItemNum(){
+    let itemCount = 0;
+    cart_data.forEach(item => itemCount += item.qyt);
+    itemsNum.innerHTML = itemCount;
+}
+
+function calcSubtotalPrice(){
+    let sub_total_price = 0;
+    cart_data.forEach(item => sub_total_price += (item.price * item.qyt ));
+    subtotalPrice.innerHTML = sub_total_price;
+
+}
+function renderCartItems() {
     cartItems.innerHTML = '';
-    cart_data.forEach(item=>{
+    cart_data.forEach(item => {
         const cartItem = document.createElement('div');
         cartItem.classList.add('cart_item');
         cartItem.innerHTML = `
-         <div class="remove_item">
+         <div class="remove_item" onclick="removeCartItem(${item.id})">
                         <span>&times;</span>
                     </div>
                     <div class="item_img"><img src="${item.image}" alt=""></div>
@@ -111,9 +150,9 @@ function renderCartItems(){
                         <p>${item.name}</p>
                         <strong>$${item.price}</strong>
                         <div class="qyt">
-                            <span>-</span>
+                            <span onclick="decreaseQyt(${item.id})">-</span>
                             <strong>${item.qyt}</strong>
-                            <span>+</span>
+                            <span onclick="increaseQyt(${item.id})">+</span>
                         </div>
                     </div>
         `;
@@ -121,6 +160,8 @@ function renderCartItems(){
     })
 }
 
-function updateCart(){
+function updateCart() {
     renderCartItems();
+    calcItemNum();
+    calcSubtotalPrice();
 }
